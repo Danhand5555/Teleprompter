@@ -1,7 +1,8 @@
 {
-  "name": "prompter",
+  "name": "pds-prompter",
+  "description": "A premium AI-driven teleprompter with custom script support",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
