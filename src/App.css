@@ -388,6 +388,34 @@
   margin: 0 0.5rem;
 }
 
+.recording-indicator {
+  position: absolute;
+  top: 100px;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  color: #fff;
+  z-index: 10;
+  border: 1px solid rgba(255, 61, 0, 0.3);
+}
+
+.blink {
+  animation: blink-animation 1s steps(5, start) infinite;
+}
+
+@keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}
+
 /* SCRIPT EDITOR */
 .script-editor-overlay {
   position: fixed;

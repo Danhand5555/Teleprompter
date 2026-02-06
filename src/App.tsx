@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Play, Pause, RotateCcw, SkipForward, SkipBack, Mic, Timer, ArrowRight, Dot, TrendingUp, Zap, Minus, ArrowDown, Maximize, Minimize, Settings, Plus, Trash2, X, Camera, CameraOff, Download } from 'lucide-react';
+import { Play, Pause, RotateCcw, SkipForward, SkipBack, Mic, Timer, ArrowRight, Dot, TrendingUp, Zap, Minus, ArrowDown, Maximize, Minimize, Settings, Plus, Trash2, X, Camera, CameraOff, Download, Video, VideoOff, Circle } from 'lucide-react';
 import './App.css';
 
 interface Section {
@@ -91,19 +91,28 @@ function App() {
   const [isEditingScript, setIsEditingScript] = useState(false);
   const [showUI, setShowUI] = useState(true);
   const [cameraActive, setCameraActive] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const recordingTimerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const uiTimeoutRef = useRef<any>(null);
 
   const toggleCamera = async () => {
     if (cameraActive) {
+      if (isRecording) stopRecording();
       stream?.getTracks().forEach(track => track.stop());
       setStream(null);
       setCameraActive(false);
     } else {
       try {
-        const newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const newStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 1280, height: 720 },
+          audio: true
+        });
         setStream(newStream);
         setCameraActive(true);
         if (videoRef.current) {
@@ -111,16 +120,52 @@ function App() {
         }
       } catch (err) {
         console.error("Error accessing camera:", err);
-        alert("Could not access camera. Please check permissions.");
+        alert("Could not access camera/mic. Please check permissions.");
       }
     }
   };
 
-  useEffect(() => {
-    if (cameraActive && videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
+  const startRecording = () => {
+    if (!stream) return;
+    chunksRef.current = [];
+    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data);
+    };
+
+    recorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `pds-recording-${Date.now()}.webm`;
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+
+    recorder.start();
+    mediaRecorderRef.current = recorder;
+    setIsRecording(true);
+    setRecordingTime(0);
+    recordingTimerRef.current = setInterval(() => {
+      setRecordingTime(prev => prev + 1);
+    }, 1000);
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      clearInterval(recordingTimerRef.current);
     }
-  }, [cameraActive, stream]);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const takeSnapshot = () => {
     if (!videoRef.current) return;
@@ -273,9 +318,14 @@ function App() {
             {cameraActive ? <Camera size={18} /> : <CameraOff size={18} />}
           </button>
           {cameraActive && (
-            <button className="icon-button snapshot-btn" onClick={takeSnapshot} title="Capture Image">
-              <Download size={18} />
-            </button>
+            <>
+              <button className={`icon-button ${isRecording ? 'recording' : ''}`} onClick={isRecording ? stopRecording : startRecording} title={isRecording ? "Stop Recording" : "Start Recording"}>
+                {isRecording ? <VideoOff size={18} color="#ff3d00" /> : <Video size={18} />}
+              </button>
+              <button className="icon-button snapshot-btn" onClick={takeSnapshot} title="Capture Image">
+                <Download size={18} />
+              </button>
+            </>
           )}
           <button className="icon-button edit-script-btn" onClick={() => setIsEditingScript(true)} style={{ marginLeft: '0.5rem', color: '#00f2ff' }}>
             <Settings size={18} />
@@ -400,6 +450,12 @@ function App() {
           <div className="camera-container">
             <video ref={videoRef} autoPlay playsInline muted className="camera-video" />
             <div className="camera-overlay"></div>
+            {isRecording && (
+              <div className="recording-indicator">
+                <Circle size={12} fill="#ff3d00" color="#ff3d00" className="blink" />
+                <span>REC {formatTime(recordingTime)}</span>
+              </div>
+            )}
           </div>
         )}
 
