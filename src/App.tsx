@@ -128,18 +128,23 @@ function App() {
   const startRecording = () => {
     if (!stream) return;
     chunksRef.current = [];
-    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+    const options = MediaRecorder.isTypeSupported('video/mp4')
+      ? { mimeType: 'video/mp4' }
+      : { mimeType: 'video/webm' };
+
+    const recorder = new MediaRecorder(stream, options);
 
     recorder.ondataavailable = (e) => {
       if (e.data.size > 0) chunksRef.current.push(e.data);
     };
 
     recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+      const extension = options.mimeType.includes('mp4') ? 'mp4' : 'webm';
+      const blob = new Blob(chunksRef.current, { type: options.mimeType });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `pds-recording-${Date.now()}.webm`;
+      link.download = `pds-recording-${Date.now()}.${extension}`;
       link.click();
       URL.revokeObjectURL(url);
     };
