@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Play, Pause, RotateCcw, SkipForward, SkipBack, Mic, Timer, ArrowRight, Dot, TrendingUp, Zap, Minus, ArrowDown, Maximize, Minimize, Settings, Plus, Trash2, X, Camera, CameraOff, Download, Video, VideoOff, Circle } from 'lucide-react';
+import { Play, Pause, RotateCcw, SkipForward, SkipBack, Mic, Timer, ArrowRight, Dot, TrendingUp, Zap, Minus, ArrowDown, Maximize, Minimize, Settings, Plus, Trash2, X, Camera, CameraOff, Download, Video, VideoOff, Circle, ChevronDown, Monitor } from 'lucide-react';
 import './App.css';
 
 interface Section {
@@ -94,6 +94,10 @@ function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
+  const [showDeviceSelector, setShowDeviceSelector] = useState(false);
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -101,29 +105,62 @@ function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const uiTimeoutRef = useRef<any>(null);
 
+  const getDevices = async () => {
+    try {
+      const allDevices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = allDevices.filter(device => device.kind === 'videoinput');
+      setDevices(videoDevices);
+      if (videoDevices.length > 0 && !selectedDeviceId) {
+        setSelectedDeviceId(videoDevices[0].deviceId);
+      }
+    } catch (err) {
+      console.error("Error getting devices:", err);
+    }
+  };
+
   const toggleCamera = async () => {
     if (cameraActive) {
       if (isRecording) stopRecording();
       stream?.getTracks().forEach(track => track.stop());
       setStream(null);
       setCameraActive(false);
+      setShowDeviceSelector(false);
     } else {
-      try {
-        const newStream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 1280, height: 720 },
-          audio: true
-        });
-        setStream(newStream);
-        setCameraActive(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = newStream;
-        }
-      } catch (err) {
-        console.error("Error accessing camera:", err);
-        alert("Could not access camera/mic. Please check permissions.");
-      }
+      await getDevices();
+      startCamera(selectedDeviceId);
     }
   };
+
+  const startCamera = async (deviceId: string) => {
+    try {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
+      const constraints = {
+        video: deviceId ? { deviceId: { exact: deviceId } } : { width: 1280, height: 720 },
+        audio: true
+      };
+
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      setStream(newStream);
+      setCameraActive(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = newStream;
+      }
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      // Fallback to any camera if specific ID fails
+      if (deviceId) startCamera('');
+      else alert("Could not access camera/mic. Please check permissions.");
+    }
+  };
+
+  useEffect(() => {
+    if (cameraActive && selectedDeviceId) {
+      startCamera(selectedDeviceId);
+    }
+  }, [selectedDeviceId]);
 
   const startRecording = () => {
     if (!stream) return;
@@ -319,9 +356,38 @@ function App() {
             </button>
           ))}
           <div className="header-divider"></div>
-          <button className={`icon-button ${cameraActive ? 'active-cam' : ''}`} onClick={toggleCamera} title="Toggle Camera">
-            {cameraActive ? <Camera size={18} /> : <CameraOff size={18} />}
-          </button>
+
+          <div className="camera-controls-group">
+            <button className={`icon-button ${cameraActive ? 'active-cam' : ''}`} onClick={toggleCamera} title="Toggle Camera">
+              {cameraActive ? <Camera size={18} /> : <CameraOff size={18} />}
+            </button>
+
+            {cameraActive && (
+              <div className="camera-source-picker">
+                <button className="icon-button source-btn" onClick={() => setShowDeviceSelector(!showDeviceSelector)}>
+                  <ChevronDown size={14} />
+                </button>
+
+                {showDeviceSelector && (
+                  <div className="device-dropdown glass-panel">
+                    {devices.map(device => (
+                      <button
+                        key={device.deviceId}
+                        className={`device-option ${selectedDeviceId === device.deviceId ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedDeviceId(device.deviceId);
+                          setShowDeviceSelector(false);
+                        }}
+                      >
+                        <Monitor size={12} /> {device.label || `Camera ${devices.indexOf(device) + 1}`}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {cameraActive && (
             <>
               <button className={`icon-button ${isRecording ? 'recording' : ''}`} onClick={isRecording ? stopRecording : startRecording} title={isRecording ? "Stop Recording" : "Start Recording"}>
