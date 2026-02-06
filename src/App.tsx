@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Play, Pause, RotateCcw, SkipForward, SkipBack, Mic, Timer, ArrowRight, Dot, TrendingUp, Zap, Minus, ArrowDown, Maximize, Minimize, Settings, Plus, Trash2, X } from 'lucide-react';
+import { Play, Pause, RotateCcw, SkipForward, SkipBack, Mic, Timer, ArrowRight, Dot, TrendingUp, Zap, Minus, ArrowDown, Maximize, Minimize, Settings, Plus, Trash2, X, Camera, CameraOff, Download } from 'lucide-react';
 import './App.css';
 
 interface Section {
@@ -90,8 +90,52 @@ function App() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isEditingScript, setIsEditingScript] = useState(false);
   const [showUI, setShowUI] = useState(true);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const uiTimeoutRef = useRef<any>(null);
+
+  const toggleCamera = async () => {
+    if (cameraActive) {
+      stream?.getTracks().forEach(track => track.stop());
+      setStream(null);
+      setCameraActive(false);
+    } else {
+      try {
+        const newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        setStream(newStream);
+        setCameraActive(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = newStream;
+        }
+      } catch (err) {
+        console.error("Error accessing camera:", err);
+        alert("Could not access camera. Please check permissions.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (cameraActive && videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [cameraActive, stream]);
+
+  const takeSnapshot = () => {
+    if (!videoRef.current) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(videoRef.current, 0, 0);
+      const link = document.createElement('a');
+      link.download = `pds-snapshot-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  };
 
   // Auto-hide UI logic
   useEffect(() => {
@@ -224,7 +268,16 @@ function App() {
               {s.title}
             </button>
           ))}
-          <button className="icon-button edit-script-btn" onClick={() => setIsEditingScript(true)} style={{ marginLeft: '1rem', color: '#00f2ff' }}>
+          <div className="header-divider"></div>
+          <button className={`icon-button ${cameraActive ? 'active-cam' : ''}`} onClick={toggleCamera} title="Toggle Camera">
+            {cameraActive ? <Camera size={18} /> : <CameraOff size={18} />}
+          </button>
+          {cameraActive && (
+            <button className="icon-button snapshot-btn" onClick={takeSnapshot} title="Capture Image">
+              <Download size={18} />
+            </button>
+          )}
+          <button className="icon-button edit-script-btn" onClick={() => setIsEditingScript(true)} style={{ marginLeft: '0.5rem', color: '#00f2ff' }}>
             <Settings size={18} />
           </button>
         </nav>
@@ -342,6 +395,14 @@ function App() {
       )}
 
       <main className="prompter-main">
+        {/* Camera Layer */}
+        {cameraActive && (
+          <div className="camera-container">
+            <video ref={videoRef} autoPlay playsInline muted className="camera-video" />
+            <div className="camera-overlay"></div>
+          </div>
+        )}
+
         {/* Countdown Overlay */}
         {countdown !== null && (
           <div className="countdown-overlay">
