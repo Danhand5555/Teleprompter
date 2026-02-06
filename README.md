@@ -1,73 +1,71 @@
-# React + TypeScript + Vite
+# 🎙️ PDS Prompter - AI-Driven Teleprompter
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A premium, high-performance teleprompter web application designed for students and professionals. Built with React, TypeScript, and Vite, featuring a futuristic neon aesthetic and fully customizable script management.
 
-Currently, two official plugins are available:
+![PDS Prompter Preview](https://via.placeholder.com/1200x600/000000/00f2ff?text=PDS+PROMPTER+PREMIUM)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+- **🚀 Fully Customizable Scripts**: Add, edit, or delete script sections with ease.
+- **⏱️ Dynamic Timing**: Set specific durations (in seconds) for each section. The prompter automatically adjusts its scrolling speed to fit your pace.
+- **🌗 Premium Aesthetics**: Futuristic dark mode with glassmorphism, neon accents, and smooth animations.
+- **🎮 Pro Controls**:
+  - **Spacebar**: Play/Pause instantly.
+  - **Double-Click**: Toggle Fullscreen mode.
+  - **Escape**: Quit countdown or pause playback.
+  - **Mouse Reveal**: UI controls auto-hide during playback for zero distraction, reappearing instantly on mouse movement.
+- **📊 Vocal Cues**: Integrated pitch indicators (UP/DOWN/STEADY/ENERGY) based on punctuation for a more natural delivery.
+- **📉 Progress Tracking**: Real-time progress bar for each section.
+- **💾 Auto-Save**: Your custom scripts are automatically saved to browser local storage.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Tech Stack
 
-## Expanding the ESLint configuration
+- **Framework**: [React 18](https://reactjs.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Bundler**: [Vite](https://vitejs.dev/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Styling**: Vanilla CSS (Custom Glassmorphism System)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Getting Started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Prerequisites
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- [Node.js](https://nodejs.org/) (v16 or higher)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Installation
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Danhand5555/Teleprompter.git
+   cd Teleprompter
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3. **Launch the development server**:
+   ```bash
+   npm run dev
+   ```
+
+4. **Build for production**:
+   ```bash
+   npm run build
+   ```
+
+## 📖 How to Use
+
+1. **Settings**: Click the ⚙️ icon in the header to enter the **Script Editor**.
+2. **Customization**: Update Titles, Time Ranges, and Durations. Input your script text for each section.
+3. **Playback**: Use the large Play button or hit **Spacebar** to start the 5-second countdown.
+4. **Performance**: Focus on the **Neon Highlighted Words** between the vertical eye-focus guides.
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+---
+*Created with ❤️ by Antigravity AI for the prompter community.*
